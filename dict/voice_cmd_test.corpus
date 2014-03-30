@@ -1,0 +1,36 @@
+turtlebot
+one
+two
+three
+four
+five
+six
+seven
+eight
+nine
+zero
+X
+Y
+Z
+forward
+left
+right
+back
+backward
+stop
+goto
+twist linear
+twist angular
+go forward
+go backward
+rotate right
+rotate left
+move forward
+move right
+move left
+move back
+move backward
+halt
+half speed
+full speed
+
