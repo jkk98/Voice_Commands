@@ -1,0 +1,5 @@
+<launch>
+
+  <node name="test_bouncer" pkg="voice_commands" type="test_bouncer.py" output="screen"/>
+
+</launch>

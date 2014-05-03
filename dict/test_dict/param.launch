@@ -1,0 +1,8 @@
+<launch>
+
+  <node name="recognizer" pkg="voice_commands" type="param.py">
+    <param name="lm" value="$(find voice_commands)/dict/test_dict/voice_cmd_test.lm"/>
+    <param name="dict" value="$(find voice_commands)/dict/test_dict/voice_cmd_test.dic"/>
+  </node>
+
+</launch>

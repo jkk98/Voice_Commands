@@ -1,11 +1,12 @@
 <launch>
 
   <node name="recognizer" pkg="pocketsphinx" type="recognizer.py">
-    <param name="lm" value="$(find voice_commands)/dict/voice_cmd_test.lm"/>
-    <param name="dict" value="$(find voice_commands)/dict/voice_cmd_test.dic"/>
+    <param name="lm" value="$(find voice_commands)/dict/voice_cmd.lm"/>
+    <param name="dict" value="$(find voice_commands)/dict/voice_cmd.dic"/>
   </node>
 
   <node name="voice_control" pkg="voice_commands" type="voice_control_test.py" output="screen"/>
+  <node name="sound_play" pkg="sound_play" type="soundplay_node.py"/>
 
   <node pkg="stage_ros" type="stageros" name="stageros" args="$(find voice_commands)/world/msu_lab2_1.world" respawn="false" output="screen" />
 </launch>
