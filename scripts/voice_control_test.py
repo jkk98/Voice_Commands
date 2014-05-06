@@ -32,11 +32,13 @@ class voice_cmd_control:
         self.pfield = False #Check to see if robot is undergoing a pfield action to a goal
         self.node_launch = False #Check to see if a node is currently launched
         self.obstacle_force = [0,0]
-        self.postion = [0, 0] #None
+        self.position = [0, 0] #None
         self.goal_position = [0, 0]
         self.yaw = 0 #None
         self.goal_yaw = 0
         self.goal_threshold = 1
+        self.finite_move_distance = .5
+        self.finite_angle_distance = math.pi / 3
         self.timeout = 0
         self.position_status = ""
         self.velocity_status = "" 
@@ -85,15 +87,15 @@ class voice_cmd_control:
         print("goal_difference:", goal_difference)
         if(angle_difference > 0.1):
             self.msg.angular.z = 0.5
-        elif(angle_difference < -1):
-            self.msg.angular.z = -0.1
+        elif(angle_difference < -.1):
+            self.msg.angular.z = -0.5
         elif(goal_difference > 0.1):
             self.msg.linear.x = 0.5
         elif(goal_difference < -0.1):
             self.msg.linear.x = -0.5
         else:
             rospy.loginfo("Finished finite movement command")
-            self.cleanup()
+            self.stop()
             pass
     
     # add_forces command based on pfield code
@@ -205,7 +207,7 @@ class voice_cmd_control:
     def odomCb(self, msg):
         [r,p,yaw] = euler_from_quaternion([msg.pose.pose.orientation.x,msg.pose.pose.orientation.y,msg.pose.pose.orientation.z,msg.pose.pose.orientation.w])
         self.yaw = yaw
-        self.position = (msg.pose.pose.position.x,msg.pose.pose.position.y)
+        self.position = [msg.pose.pose.position.x,msg.pose.pose.position.y]
         #rospy.loginfo(msg)
         
     def speechCb(self, msg):
@@ -228,27 +230,47 @@ class voice_cmd_control:
                 self.speed = 0.2
             if(self.node_launch == False):
                 os.system("roslaunch voice_commands test_bouncer.launch &")
-                node_launch == True
+                self.node_launch == True
 
-        if msg.data.find("forward") > -1:    
+        if msg.data.find("twist forward") > -1:    
             self.msg.linear.x = self.speed
             self.msg.angular.z = 0
-        elif msg.data.find("left") > -1:
+        elif msg.data.find("twist left") > -1:
             if self.msg.linear.x != 0:
                 if self.msg.angular.z < self.speed:
                     self.msg.angular.z += 0.05
             else:        
                 self.msg.angular.z = self.speed*2
-        elif msg.data.find("right") > -1:    
+        elif msg.data.find("twist right") > -1:    
             if self.msg.linear.x != 0:
                 if self.msg.angular.z > -self.speed:
                     self.msg.angular.z -= 0.05
             else:        
                 self.msg.angular.z = -self.speed*2
-        elif msg.data.find("back") > -1:
+        elif msg.data.find("twist back") > -1:
             self.msg.linear.x = -self.speed
             self.msg.angular.z = 0
-            self.goal_position = [0, 0]
+            
+        # Discrete Movements
+        elif (msg.data.find("move four") > -1) or (msg.data.find("move forward") > -1):
+            self.goal_yaw = self.yaw # reset the goal yaw
+            self.goal_position[0] = self.position[0] + cos(self.wrap_angle(self.yaw)) * self.finite_move_distance
+            self.goal_position[1] = self.position[1] + sin(self.wrap_angle(self.yaw)) * self.finite_move_distance
+            self.discrete_movement = True
+#        elif msg.data.find("move back") > -1:
+#            self.goal_yaw = self.yaw # reset the goal yaw
+#            self.goal_position[0] = -cos(self.wrap_angle(self.yaw)) * self.finite_move_distance
+#            self.goal_position[1] = -sin(self.wrap_angle(self.yaw)) * self.finite_move_distance
+#            self.discrete_movement = True
+        elif msg.data.find("rotate right") > -1:
+            self.goal_position = self.position # reset the goal
+            self.goal_yaw = self.yaw - self.finite_angle_distance
+            self.discrete_movement = True
+        elif msg.data.find("rotate left") > -1:
+            self.goal_position = self.position # reset the goal
+            self.goal_yaw = self.yaw + self.finite_angle_distance
+            self.discrete_movement = True
+        
             
         # Need to add in case statements for finite move commands
         # Will need to edit the dictionary            
@@ -284,12 +306,12 @@ class voice_cmd_control:
                 print(e)
                 print("second paramater is not an int") 
             
-        elif (msg.data.find("go")):
+        elif (msg.data.find("goto")):
             print "==== Status ===="
             print self.position_status
             print self.velocity_status
             print self.goal_status
-            output_message = self.position_status + self.velocity_status + self.goal_status       
+            #output_message = self.position_status + self.velocity_status + self.goal_status       
             
         elif msg.data.find("exit") > -1:
             exit()
@@ -305,8 +327,8 @@ class voice_cmd_control:
         self.pfield = False
         #if(self.node_launch == True):
         os.system("rosnode kill /test_bouncer")
-        self.twist = Twist()
-        self.pub.publish(self.twist)
+        self.msg = Twist()
+        self.pub.publish(self.msg)
 
     def cleanup(self):
         # stop the robot!
