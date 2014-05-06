@@ -1,0 +1,3 @@
+<launch>
+	<node name="wall_following" pkg="voice_commands" type="wall_following.py" output="screen" />
+</launch>

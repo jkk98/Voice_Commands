@@ -22,6 +22,7 @@ from tf.transformations import euler_from_quaternion
 
 class voice_cmd_control:
     number = {'zero': 0, 'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5, 'six': 6, 'seven': 7, 'eight': 8, 'nine': 9}
+    nodes = ["test_bouncer.launch", "wall_following.launch"]
 
     def __init__(self):
         print("====== Beginning Init ========")
@@ -31,6 +32,7 @@ class voice_cmd_control:
         self.discrete_movement = False #Check to see if the robot is performing a discrete movement rather than a twist
         self.pfield = False #Check to see if robot is undergoing a pfield action to a goal
         self.node_launch = False #Check to see if a node is currently launched
+        self.current_launched_node = ""
         self.obstacle_force = [0,0]
         self.position = [0, 0] #None
         self.goal_position = [0, 0]
@@ -229,7 +231,7 @@ class voice_cmd_control:
                 self.msg.angular.z = self.msg.angular.z/2
                 self.speed = 0.2
             if(self.node_launch == False):
-                os.system("roslaunch voice_commands test_bouncer.launch &")
+                os.system("roslaunch voice_commands wall_following.launch &")
                 self.node_launch == True
 
         if msg.data.find("twist forward") > -1:    
@@ -326,7 +328,7 @@ class voice_cmd_control:
         self.discrete_movement = False
         self.pfield = False
         #if(self.node_launch == True):
-        os.system("rosnode kill /test_bouncer")
+        os.system("rosnode kill /wall_following")
         self.msg = Twist()
         self.pub.publish(self.msg)
 
