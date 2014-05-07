@@ -239,14 +239,22 @@ class voice_cmd_control:
             if(self.node_launch == False):
                 os.system("roslaunch voice_commands wall_following.launch &")
                 self.node_launch == True
-	if msg.data.find("p field") > -1 or msg.data.find("goto") > -1:
-	    self.pfield = True
-	if msg.data.find("roslaunch node ") > -1:
-	    nodeid = voice_cmd_control.number[msg.data[msg.data.find("roslaunch node ")+15:].split()[0]]
-	    print "Node Id", nodeid
-	    if nodeid == 1 and not self.node_launch:
-		os.system("roslaunch voice_commands test_bouncer.launch &")
-		self.node_launch = True
+        if msg.data.find("p field") > -1 or msg.data.find("goto") > -1:
+            self.pfield = True
+            
+        if msg.data.find("roslaunch node ") > -1:
+            nodeid = voice_cmd_control.number[msg.data[msg.data.find("roslaunch node ")+15:].split()[0]]
+            print "Node Id", nodeid
+            try:
+                if(self.current_launched_node != voice_cmd_control.nodes[nodeid]):
+                    message = "roslaunch voice_commands %s &" % voice_cmd_control.nodes[nodeid]
+                    print(message)
+                    os.system(message)
+                    self.current_launched_node = voice_cmd_control.nodes[nodeid]
+                    self.node_launch = True
+            except Exception as e:
+                print(e)
+  
         if msg.data.find("twist forward") > -1:    
             self.msg.linear.x = self.speed
             self.msg.angular.z = 0
@@ -299,12 +307,11 @@ class voice_cmd_control:
             msg_list = msg.data.split()
             try:
                 param = msg_list[1].strip()
-                
-		if param == "negative":
-		    param = msg_list[2].strip()
-		    value = -voice_cmd_control.number[param]
-		else:
-		    print(param)
+                if param == "negative":
+                    param = msg_list[2].strip()
+                    value = -voice_cmd_control.number[param]
+                else:
+                    print(param)
                     value = voice_cmd_control.number[param]
                 print(value)
                 self.goal_position[0] = value #self.get_point(msg_list[1])
@@ -319,10 +326,10 @@ class voice_cmd_control:
                 param = msg_list[1].strip()
                 print(param)
                 if param == "negative":
-		    param = msg_list[2].strip()
-		    value = -voice_cmd_control.number[param]
-		else:
-		    print(param)
+                    param = msg_list[2].strip()
+                    value = -voice_cmd_control.number[param]
+                else:
+                    print(param)
                     value = voice_cmd_control.number[param]
                 self.goal_position[1] = value #self.get_point(msg_list[1])
                 print("goal position:", self.goal_position)
@@ -350,7 +357,10 @@ class voice_cmd_control:
         self.discrete_movement = False
         self.pfield = False
         #if(self.node_launch == True):
-        os.system("rosnode kill /wall_following")
+        if(self.current_launched_node == "wall_following.launch"):
+            os.system("rosnode kill /wall_following")
+        elif(self.current_launched_node == "test_bouncer"):
+            os.system("rosnode kill /test_bouncer")
         self.msg = Twist()
         self.pub.publish(self.msg)
 
@@ -358,6 +368,7 @@ class voice_cmd_control:
         # stop the robot!
         if(self.node_launch == True):
             os.system("rosnode kill /test_bouncer")
+            os.system("rosnode kill /wall_following")
         self.twist = Twist()
         self.pub.publish(self.twist)
 
