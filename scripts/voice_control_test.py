@@ -51,6 +51,7 @@ class voice_cmd_control:
         self.position_status = ""
         self.velocity_status = "" 
         self.goal_status = ""
+        self.ignore = False
             
         
         #Subscribe to the laser scan topic
@@ -89,7 +90,8 @@ class voice_cmd_control:
             r.sleep()
         
     def finite_move(self):
-        angle_difference = self.goal_yaw - self.yaw
+        angle_difference = self.wrap_angle(self.goal_yaw - self.yaw)
+		
         print "angle_difference:", angle_difference
         goal_difference = math.sqrt((self.goal_position[0] - self.position[0])**2 + (self.goal_position[1] - self.position[1])**2)
         print("goal_difference:", goal_difference)
@@ -221,6 +223,14 @@ class voice_cmd_control:
     def speechCb(self, msg):
         rospy.loginfo(msg.data)
         output_message = "I heard %s." % msg.data
+        if self.ignore:
+			if msg.data.find("hey listen") > -1:
+				self.ignore = False
+			return
+
+        if msg.data.find("ignore") > -1:
+				self.ignore = True
+	
 
         if msg.data.find("full") > -1:
             if self.speed == 0.2:
@@ -267,10 +277,21 @@ class voice_cmd_control:
             self.msg.angular.z = 0
             
         # Discrete Movements
-        elif (msg.data.find("move four") > -1) or (msg.data.find("move forward") > -1):
-            self.goal_yaw = self.yaw # reset the goal yaw
-            self.goal_position[0] = self.position[0] + cos(self.wrap_angle(self.yaw)) * self.finite_move_distance
-            self.goal_position[1] = self.position[1] + sin(self.wrap_angle(self.yaw)) * self.finite_move_distance
+        elif msg.data.find("move") > -1:
+            amount = msg.data.split()[1]
+            sign = 1
+            if amount == "back":
+                amount = -voice_cmd_control.number[msg.data.split()[2]]
+                sign = -1
+            else:
+                amount = voice_cmd_control.number[amount]
+            print "Moving",amount
+            if sign == 1:
+                self.goal_yaw = self.yaw # reset the goal yaw
+            else:
+                self.goal_yaw = self.wrap_angle(self.yaw+pi)
+            self.goal_position[0] = self.position[0] + cos(self.wrap_angle(self.yaw)) * self.finite_move_distance*amount
+            self.goal_position[1] = self.position[1] + sin(self.wrap_angle(self.yaw)) * self.finite_move_distance*amount
             self.discrete_movement = True
 #        elif msg.data.find("move back") > -1:
 #            self.goal_yaw = self.yaw # reset the goal yaw

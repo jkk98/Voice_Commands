@@ -100,4 +100,8 @@ y zero
 y negative zero
 status
 p field
-goto goal
+goto
+full
+half
+ignore
+hey listen
