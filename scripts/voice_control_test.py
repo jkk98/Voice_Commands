@@ -12,7 +12,13 @@ import os
 
 import math
 from math import *
-from sound_play.libsoundplay import SoundClient
+try:
+    from sound_play.libsoundplay import SoundClient
+except Exception:
+    class SoundClient:
+        def say(self,*args):
+	    print args
+            return
 
 from geometry_msgs.msg import Twist
 from std_msgs.msg import String
@@ -233,7 +239,14 @@ class voice_cmd_control:
             if(self.node_launch == False):
                 os.system("roslaunch voice_commands wall_following.launch &")
                 self.node_launch == True
-
+	if msg.data.find("p field") > -1 or msg.data.find("goto") > -1:
+	    self.pfield = True
+	if msg.data.find("roslaunch node ") > -1:
+	    nodeid = voice_cmd_control.number[msg.data[msg.data.find("roslaunch node ")+15:].split()[0]]
+	    print "Node Id", nodeid
+	    if nodeid == 1 and not self.node_launch:
+		os.system("roslaunch voice_commands test_bouncer.launch &")
+		self.node_launch = True
         if msg.data.find("twist forward") > -1:    
             self.msg.linear.x = self.speed
             self.msg.angular.z = 0
@@ -278,7 +291,7 @@ class voice_cmd_control:
         # Will need to edit the dictionary            
             
         elif msg.data.find("stop") > -1 or msg.data.find("halt") > -1:          
-            #self.cleanup()
+            self.cleanup()
             self.msg = Twist()
             self.stop()
 
@@ -286,8 +299,13 @@ class voice_cmd_control:
             msg_list = msg.data.split()
             try:
                 param = msg_list[1].strip()
-                print(param)
-                value = voice_cmd_control.number[param]
+                
+		if param == "negative":
+		    param = msg_list[2].strip()
+		    value = -voice_cmd_control.number[param]
+		else:
+		    print(param)
+                    value = voice_cmd_control.number[param]
                 print(value)
                 self.goal_position[0] = value #self.get_point(msg_list[1])
                 print("goal position:", self.goal_position)
@@ -300,15 +318,19 @@ class voice_cmd_control:
             try:
                 param = msg_list[1].strip()
                 print(param)
-                value = voice_cmd_control.number[param]
-                print(value)
+                if param == "negative":
+		    param = msg_list[2].strip()
+		    value = -voice_cmd_control.number[param]
+		else:
+		    print(param)
+                    value = voice_cmd_control.number[param]
                 self.goal_position[1] = value #self.get_point(msg_list[1])
                 print("goal position:", self.goal_position)
             except Exception as e:
                 print(e)
                 print("second paramater is not an int") 
             
-        elif (msg.data.find("goto")):
+        elif (msg.data.find("goto goal")):
             print "==== Status ===="
             print self.position_status
             print self.velocity_status

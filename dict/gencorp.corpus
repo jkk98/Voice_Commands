@@ -1,0 +1,103 @@
+halt
+stop
+go left
+move left
+rotate left
+twist left
+go right
+move right
+rotate right
+twist right
+go one
+go two
+go three
+go four
+go five
+go six
+go seven
+go eight
+go nine
+go zero
+go back one
+go back two
+go back three
+go back four
+go back five
+go back six
+go back seven
+go back eight
+go back nine
+go back zero
+move one
+move two
+move three
+move four
+move five
+move six
+move seven
+move eight
+move nine
+move zero
+move back one
+move back two
+move back three
+move back four
+move back five
+move back six
+move back seven
+move back eight
+move back nine
+move back zero
+roslaunch node one
+x one
+x negative one
+y one
+y negative one
+roslaunch node two
+x two
+x negative two
+y two
+y negative two
+roslaunch node three
+x three
+x negative three
+y three
+y negative three
+roslaunch node four
+x four
+x negative four
+y four
+y negative four
+roslaunch node five
+x five
+x negative five
+y five
+y negative five
+roslaunch node six
+x six
+x negative six
+y six
+y negative six
+roslaunch node seven
+x seven
+x negative seven
+y seven
+y negative seven
+roslaunch node eight
+x eight
+x negative eight
+y eight
+y negative eight
+roslaunch node nine
+x nine
+x negative nine
+y nine
+y negative nine
+roslaunch node zero
+x zero
+x negative zero
+y zero
+y negative zero
+status
+p field
+goto goal
