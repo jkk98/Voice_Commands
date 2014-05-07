@@ -224,31 +224,33 @@ class voice_cmd_control:
         rospy.loginfo(msg.data)
         output_message = "I heard %s." % msg.data
         if self.ignore:
-			if msg.data.find("hey listen") > -1:
-				self.ignore = False
-			return
+            if msg.data.find("hey listen") > -1:
+			self.ignore = False
+            else:
+                print("Ignoring Commands. Say \"Hey Listen!\" to resume commands")
+                return
 
         if msg.data.find("ignore") > -1:
 				self.ignore = True
 	
 
-        if msg.data.find("full") > -1:
+        if msg.data.find("full speed") > -1:
             if self.speed == 0.2:
                 self.msg.linear.x = self.msg.linear.x*2
                 self.msg.angular.z = self.msg.angular.z*2
                 self.speed = 0.4
-            if(self.pfield == False):
-                print("Beginning pfields perhaps")
-                self.pfield = True
-                self.msg = Twist()
-        if msg.data.find("half") > -1:
+#            if(self.pfield == False):
+#                print("Beginning pfields perhaps")
+#                self.pfield = True
+#                self.msg = Twist()
+        if msg.data.find("half speed") > -1:
             if self.speed == 0.4:
                 self.msg.linear.x = self.msg.linear.x/2
                 self.msg.angular.z = self.msg.angular.z/2
                 self.speed = 0.2
-            if(self.node_launch == False):
-                os.system("roslaunch voice_commands wall_following.launch &")
-                self.node_launch == True
+#            if(self.node_launch == False):
+#                os.system("roslaunch voice_commands wall_following.launch &")
+#                self.node_launch == True
         if msg.data.find("p field") > -1 or msg.data.find("goto") > -1:
             self.pfield = True
             
@@ -380,7 +382,7 @@ class voice_cmd_control:
         #if(self.node_launch == True):
         if(self.current_launched_node == "wall_following.launch"):
             os.system("rosnode kill /wall_following")
-        elif(self.current_launched_node == "test_bouncer"):
+        if(self.current_launched_node == "test_bouncer"):
             os.system("rosnode kill /test_bouncer")
         self.msg = Twist()
         self.pub.publish(self.msg)
